@@ -33,6 +33,17 @@ def validate_pyproject():
             print("❌ Missing [project] section in pyproject.toml")
             return False
         
+        # Check for project.scripts section (required for multi-mode deployment)
+        if "project" in config and "scripts" not in config["project"]:
+            print("❌ Missing [project.scripts] section in pyproject.toml")
+            return False
+            
+        # Check if scripts section has server entry point
+        scripts = config["project"].get("scripts", {})
+        if not any("server" in name for name in scripts.keys()):
+            print("❌ Missing server entry point in [project.scripts]")
+            return False
+        
         required_fields = ["name", "version", "description"]
         for field in required_fields:
             if field not in config["project"]:
@@ -40,6 +51,7 @@ def validate_pyproject():
                 return False
         
         print("✅ pyproject.toml validation passed")
+        print(f"✅ Found server entry point: {list(scripts.keys())[0]}")
         return True
     
     except Exception as e:
@@ -47,28 +59,6 @@ def validate_pyproject():
         return False
 
 def validate_openenv_yaml():
-    """Validate openenv.yaml file exists and has required fields."""
-    yaml_path = Path("openenv.yaml")
-    if not yaml_path.exists():
-        print("❌ openenv.yaml not found")
-        return False
-    
-    try:
-        with open(yaml_path) as f:
-            config = yaml.safe_load(f)
-        
-        required_fields = ["name", "version", "description", "entrypoint"]
-        for field in required_fields:
-            if field not in config:
-                print(f"❌ Missing required field: {field}")
-                return False
-        
-        print("✅ openenv.yaml validation passed")
-        return True
-    
-    except yaml.YAMLError as e:
-        print(f"❌ Invalid YAML: {e}")
-        return False
     """Validate openenv.yaml file exists and has required fields."""
     yaml_path = Path("openenv.yaml")
     if not yaml_path.exists():
