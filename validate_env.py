@@ -118,10 +118,16 @@ def validate_structure():
         "Dockerfile", 
         "requirements.txt",
         "inference.py",
-        "server.py",
+        "server/app.py",
+        "server/__init__.py",
         "src/__init__.py",
         "src/env.py",
         "src/tasks.py"
+    ]
+    
+    # Multi-mode deployment files (required for hackathon)
+    multimode_files = [
+        "uv.lock",
     ]
     
     # Optional files (nice to have but not critical)
@@ -133,6 +139,12 @@ def validate_structure():
     for file in required_files:
         if not Path(file).exists():
             print(f"❌ Missing required file: {file}")
+            return False
+    
+    # Check multi-mode deployment files
+    for file in multimode_files:
+        if not Path(file).exists():
+            print(f"❌ Missing multi-mode deployment file: {file}")
             return False
     
     # Check optional files (warn but don't fail)
