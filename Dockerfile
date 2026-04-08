@@ -14,4 +14,8 @@ LABEL tags="openenv"
 # Validate environment during build phase by testing imports
 RUN python -c "from src.env import CustomerSupportEnv, Action, Observation, Reward, Info; print('Environment validation passed')"
 
-CMD ["python", "inference.py"]
+# Expose port for the server
+EXPOSE 7860
+
+# Run the FastAPI server
+CMD ["python", "server.py"]
