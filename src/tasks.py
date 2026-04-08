@@ -2,12 +2,11 @@ from typing import Dict, Any
 
 def score_episode(env_state: Any, ground_truth: Dict[str, Dict[str, str]]) -> float:
     """
-    Grader: Returns a score between 0.0 and 1.0 based on final state correctness.
+    Grader: Returns a score strictly between 0.0 and 1.0 based on final state correctness.
+    Ensures score is never exactly 0.0 or 1.0 as required by hackathon validation.
     """
     resolved = {t.id: t for t in env_state.resolved_tickets}
-    if not resolved:
-        return 0.0
-
+    
     total_points = 0.0
     max_points = len(ground_truth) * 2.0 # 1 point for cat, 1 for priority per ticket
 
@@ -19,7 +18,14 @@ def score_episode(env_state: Any, ground_truth: Dict[str, Dict[str, str]]) -> fl
             if ticket.assigned_priority == truth["priority"]:
                 total_points += 1.0
 
-    return round(total_points / max_points, 2)
+    # Calculate base score
+    base_score = total_points / max_points
+    
+    # Ensure score is strictly between 0 and 1 (exclusive)
+    # Map [0, 1] to (0.01, 0.99) to satisfy hackathon requirements
+    adjusted_score = 0.01 + (base_score * 0.98)
+    
+    return round(adjusted_score, 3)
 
 # --- TASKS ---
 
