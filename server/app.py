@@ -187,3 +187,10 @@ if __name__ == "__main__":
         port=port,
         log_level="info"
     )
+def main():
+    """Entry point for the CLI script."""
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=7860)
+
+if __name__ == "__main__":
+    main()

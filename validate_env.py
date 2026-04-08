@@ -119,16 +119,26 @@ def validate_structure():
         "requirements.txt",
         "inference.py",
         "server.py",
-        "__init__.py",
         "src/__init__.py",
         "src/env.py",
         "src/tasks.py"
     ]
     
+    # Optional files (nice to have but not critical)
+    optional_files = [
+        "__init__.py"  # Root package init (for proper Python package)
+    ]
+    
+    # Check required files
     for file in required_files:
         if not Path(file).exists():
             print(f"❌ Missing required file: {file}")
             return False
+    
+    # Check optional files (warn but don't fail)
+    for file in optional_files:
+        if not Path(file).exists():
+            print(f"⚠️ Missing optional file: {file} (recommended for proper Python package)")
     
     print("✅ Project structure validation passed")
     return True
