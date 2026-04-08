@@ -1,3 +1,4 @@
+spec_version: "1.0"
 name: "customer-support-triage"
 version: "1.0.0"
 description: "A real-world environment simulating a customer support agent triaging, categorizing, and prioritizing incoming tickets."
@@ -8,3 +9,11 @@ tags:
   - "customer-support"
   - "nlp"
 entrypoint: "src.env:CustomerSupportEnv"
+server:
+  port: 7860
+  endpoints:
+    - "/reset"
+    - "/step" 
+    - "/state"
+    - "/health"
+    - "/info"

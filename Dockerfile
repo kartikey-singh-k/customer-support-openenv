@@ -2,6 +2,11 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -11,8 +16,8 @@ COPY . .
 LABEL maintainer="OpenEnv"
 LABEL tags="openenv"
 
-# Validate environment during build phase by testing imports
-RUN python -c "from src.env import CustomerSupportEnv, Action, Observation, Reward, Info; print('Environment validation passed')"
+# Validate environment during build phase
+RUN python validate_env.py
 
 # Expose port for the server
 EXPOSE 7860
