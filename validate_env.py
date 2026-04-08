@@ -40,8 +40,9 @@ def validate_pyproject():
             
         # Check if scripts section has server entry point
         scripts = config["project"].get("scripts", {})
-        if not any("server" in name for name in scripts.keys()):
-            print("❌ Missing server entry point in [project.scripts]")
+        if "server" not in scripts:
+            print("❌ Missing 'server' entry point in [project.scripts]")
+            print(f"❌ Found: {list(scripts.keys())}")
             return False
         
         required_fields = ["name", "version", "description"]
@@ -51,7 +52,7 @@ def validate_pyproject():
                 return False
         
         print("✅ pyproject.toml validation passed")
-        print(f"✅ Found server entry point: {list(scripts.keys())[0]}")
+        print(f"✅ Found server entry point: {scripts['server']}")
         return True
     
     except Exception as e:

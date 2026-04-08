@@ -49,6 +49,7 @@ Repository = "https://github.com/kartikey-singh-k/customer-support-openenv"
 "Bug Tracker" = "https://github.com/kartikey-singh-k/customer-support-openenv/issues"
 
 [project.scripts]
+server = "server.app:main"
 customer-support-server = "server.app:main"
 
 [tool.setuptools]

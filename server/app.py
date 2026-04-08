@@ -8,9 +8,11 @@ from pydantic import BaseModel
 from typing import Dict, Any, Optional
 import uvicorn
 import os
+import sys
+import traceback
 
-from src.env import CustomerSupportEnv, Action, Observation, Reward, Info
-from src.tasks import get_task
+# Add current directory to Python path
+sys.path.insert(0, '/app')
 
 app = FastAPI(
     title="Customer Support Triage OpenEnv",
@@ -19,8 +21,44 @@ app = FastAPI(
 )
 
 # Global environment instance
-env_instance: Optional[CustomerSupportEnv] = None
+env_instance: Optional[Any] = None
 current_task: str = "easy"
+
+# Lazy import to avoid hanging
+_env_module = None
+_tasks_module = None
+
+def get_env_module():
+    """Lazy import of environment module."""
+    global _env_module
+    if _env_module is None:
+        try:
+            from src.env import CustomerSupportEnv, Action, Observation, Reward, Info
+            _env_module = {
+                'CustomerSupportEnv': CustomerSupportEnv,
+                'Action': Action,
+                'Observation': Observation, 
+                'Reward': Reward,
+                'Info': Info
+            }
+        except Exception as e:
+            print(f"Error importing env module: {e}")
+            traceback.print_exc()
+            raise
+    return _env_module
+
+def get_tasks_module():
+    """Lazy import of tasks module.""" 
+    global _tasks_module
+    if _tasks_module is None:
+        try:
+            from src.tasks import get_task
+            _tasks_module = {'get_task': get_task}
+        except Exception as e:
+            print(f"Error importing tasks module: {e}")
+            traceback.print_exc()
+            raise
+    return _tasks_module
 
 
 class ResetRequest(BaseModel):
@@ -68,11 +106,13 @@ async def reset(request: ResetRequest = None):
         task_level = request.task if request else "easy"
         current_task = task_level
         
-        # Load task data
-        task_data = get_task(task_level)
+        # Load task data using lazy import
+        tasks_module = get_tasks_module()
+        task_data = tasks_module['get_task'](task_level)
         
-        # Create new environment instance
-        env_instance = CustomerSupportEnv(
+        # Create new environment instance using lazy import
+        env_module = get_env_module()
+        env_instance = env_module['CustomerSupportEnv'](
             initial_tickets=task_data["tickets"],
             ground_truth=task_data["ground_truth"]
         )
@@ -87,6 +127,9 @@ async def reset(request: ResetRequest = None):
         })
         
     except Exception as e:
+        import traceback
+        print(f"Reset error: {e}")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Reset failed: {str(e)}")
 
 
@@ -110,8 +153,9 @@ async def step(request: StepRequest):
         )
     
     try:
-        # Parse action
-        action = Action(**request.action)
+        # Parse action using lazy import
+        env_module = get_env_module()
+        action = env_module['Action'](**request.action)
         
         # Execute step
         observation, reward, done, info = env_instance.step(action)
@@ -124,6 +168,9 @@ async def step(request: StepRequest):
         })
         
     except Exception as e:
+        import traceback
+        print(f"Step error: {e}")
+        traceback.print_exc()
         raise HTTPException(status_code=400, detail=f"Step failed: {str(e)}")
 
 
