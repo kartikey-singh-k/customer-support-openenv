@@ -96,6 +96,10 @@ Only output raw JSON. Do not include markdown code blocks.
             success = True
 
     finally:
+        # Calculate final episode score using the grader
+        from src.tasks import score_episode
+        final_score = score_episode(env.state(), env.ground_truth)
+        
         # RULE: One [END] line after env.close(), always emitted (even on exception).
         success_str = "true" if success else "false"
         
@@ -103,8 +107,9 @@ Only output raw JSON. Do not include markdown code blocks.
             rewards_str = "0.00"
         else:
             rewards_str = ",".join([f"{r:.2f}" for r in rewards])
-            
-        print(f"[END] success={success_str} steps={steps} rewards={rewards_str}")
+        
+        # Include the final graded score    
+        print(f"[END] success={success_str} steps={steps} rewards={rewards_str} score={final_score:.3f}")
 
 if __name__ == "__main__":
     # Execute the tasks sequentially

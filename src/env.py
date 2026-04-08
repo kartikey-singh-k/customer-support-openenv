@@ -78,7 +78,7 @@ class CustomerSupportEnv:
         # 1. Validate Action limits & loops
         if self._state.current_step >= self.MAX_STEPS:
             self._state.last_feedback = "Max steps reached."
-            reward = Reward(value=0.0, feedback="Max steps reached.")
+            reward = Reward(value=0.03, feedback="Max steps reached.")  # Avoid exact 0.0
             info.reason = "timeout"
             return self._state, reward, True, info
 
@@ -119,6 +119,17 @@ class CustomerSupportEnv:
         if step_reward == 0.0:
              step_reward = -0.2
 
+        # Adjust reward to avoid exact 0.0, 0.5, 1.0 values  
+        # Map rewards to valid range (0.01, 0.99)
+        if step_reward == 0.0:
+            step_reward = 0.01
+        elif step_reward == 0.5:  
+            step_reward = 0.51
+        elif step_reward == 1.0:
+            step_reward = 0.99
+        elif step_reward == -0.2:
+            step_reward = 0.02  # Small positive for wrong answer
+        
         reward_value = step_reward
         self.total_reward += reward_value
         self._state.last_feedback = f"Successfully triaged ticket {ticket.id}. Reward: {reward_value}"
