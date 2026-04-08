@@ -7,7 +7,68 @@ import sys
 import yaml
 from pathlib import Path
 
+def validate_pyproject():
+    """Validate pyproject.toml file exists and has required fields."""
+    toml_path = Path("pyproject.toml")
+    if not toml_path.exists():
+        print("❌ pyproject.toml not found")
+        return False
+    
+    try:
+        import tomllib
+    except ImportError:
+        try:
+            import tomli as tomllib
+        except ImportError:
+            # For Python < 3.11, just check file exists
+            print("✅ pyproject.toml file exists (cannot parse without tomllib)")
+            return True
+    
+    try:
+        with open(toml_path, "rb") as f:
+            config = tomllib.load(f)
+        
+        # Check for required sections
+        if "project" not in config:
+            print("❌ Missing [project] section in pyproject.toml")
+            return False
+        
+        required_fields = ["name", "version", "description"]
+        for field in required_fields:
+            if field not in config["project"]:
+                print(f"❌ Missing required field in [project]: {field}")
+                return False
+        
+        print("✅ pyproject.toml validation passed")
+        return True
+    
+    except Exception as e:
+        print(f"❌ Invalid pyproject.toml: {e}")
+        return False
+
 def validate_openenv_yaml():
+    """Validate openenv.yaml file exists and has required fields."""
+    yaml_path = Path("openenv.yaml")
+    if not yaml_path.exists():
+        print("❌ openenv.yaml not found")
+        return False
+    
+    try:
+        with open(yaml_path) as f:
+            config = yaml.safe_load(f)
+        
+        required_fields = ["name", "version", "description", "entrypoint"]
+        for field in required_fields:
+            if field not in config:
+                print(f"❌ Missing required field: {field}")
+                return False
+        
+        print("✅ openenv.yaml validation passed")
+        return True
+    
+    except yaml.YAMLError as e:
+        print(f"❌ Invalid YAML: {e}")
+        return False
     """Validate openenv.yaml file exists and has required fields."""
     yaml_path = Path("openenv.yaml")
     if not yaml_path.exists():
@@ -53,10 +114,12 @@ def validate_structure():
     """Validate project structure."""
     required_files = [
         "openenv.yaml",
+        "pyproject.toml",
         "Dockerfile", 
         "requirements.txt",
         "inference.py",
         "server.py",
+        "__init__.py",
         "src/__init__.py",
         "src/env.py",
         "src/tasks.py"
@@ -76,6 +139,7 @@ def main():
     
     validations = [
         ("Project Structure", validate_structure),
+        ("pyproject.toml", validate_pyproject),
         ("openenv.yaml", validate_openenv_yaml),
         ("Environment Import", validate_entrypoint),
     ]
